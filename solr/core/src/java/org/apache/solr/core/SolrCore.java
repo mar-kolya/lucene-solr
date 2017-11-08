@@ -28,6 +28,7 @@ import java.io.Writer;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.net.URL;
+import java.nio.channels.ClosedChannelException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -374,6 +375,10 @@ public final class SolrCore implements SolrInfoMBean, SolrMetricProducer, Closea
           IOUtils.closeQuietly(is);
         }
       }
+    } catch (ClosedChannelException e) {
+      // Rethrow ChannelException because hiding it may cause 'cleanupOldIndexDirectories' to cleanup real index directory
+      SolrException.log(log, "", e);
+      throw new RuntimeException(e);
     } catch (IOException e) {
       SolrException.log(log, "", e);
     } finally {
